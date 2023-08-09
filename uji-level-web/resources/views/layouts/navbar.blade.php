@@ -3,8 +3,7 @@
     <div class="h-full flex items-center">
         <!-- BEGIN: Logo -->
         <a href="" class="-intro-x hidden md:flex">
-            <img alt="Midone - HTML Admin Template" class="w-6" src="dist/images/logo.svg">
-            <span class="text-white text-lg ml-3"><a href="{{route('dashboard')}}">IceWall</a></span> 
+            <a class="text-white text-lg ml-3" href="{{route('dashboard')}}">TBH</a>
         </a>
         <!-- END: Logo -->
         <!-- BEGIN: Breadcrumb -->
@@ -187,7 +186,11 @@
                 <ul class="dropdown-content bg-primary/80 before:block before:absolute before:bg-black before:inset-0 before:rounded-md before:z-[-1] text-white">
                     <li class="p-2">
                         <div class="font-medium">{{ Auth::user()->name }}</div>
-                        <div class="text-xs text-white/60 mt-0.5 dark:text-slate-500">{{ Auth::user()->role }}</div>
+                        <div class="text-xs text-white/60 mt-0.5 dark:text-slate-500">
+                            @foreach (Auth::user()->roles as $role)
+                                {{ $role->name }} 
+                            @endforeach
+                        </div>
                     </li>
                     <li>
                         <hr class="dropdown-divider border-white/[0.08]">

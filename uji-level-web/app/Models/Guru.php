@@ -34,4 +34,13 @@ class Guru extends Model
     {
         return $this->belongsTo (User::class);
     }
+
+    public function konseling(){
+        return $this->hasOne(KonselingBK::class, 'guru_id', 'id');
+    }
+
+    public function walasKelas()
+    {
+        return $this->hasMany(Kelas::class, 'walas_id');
+    }
 }

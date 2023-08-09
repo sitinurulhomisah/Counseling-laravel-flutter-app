@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Models\Role;
 use Laravel\Jetstream\HasProfilePhoto;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
@@ -25,7 +26,7 @@ class User extends Authenticatable
 
     public function siswa()
     {
-        return $this->hasOne(Siswa::class);
+        return $this->hasOne(Siswa::class, 'user_id', 'id');
     }
 
     public function guru()
@@ -36,6 +37,10 @@ class User extends Authenticatable
     public function walas()
     {
         return $this->hasOne(Walas::class);
+    }
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
     }
 
     /**
@@ -84,4 +89,6 @@ class User extends Authenticatable
     {
         return $this->role == $role;
     }
+
+
 }

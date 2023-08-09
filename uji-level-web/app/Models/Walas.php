@@ -32,11 +32,15 @@ class Walas extends Model
 
     public function user()
 {
-    return $this->belongsTo(User::class);
+    return $this->belongsTo(User::class, 'walas_id');
 }
 public function guru()
 {
     return $this->belongsTo(Guru::class, 'guru_id');
+}
+
+public function konseling(){
+    return $this->hasOne(KonselingBK::class, 'walas_id', 'id');
 }
 
 

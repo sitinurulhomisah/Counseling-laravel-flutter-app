@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:uji_level_app/homepage.dart';
+import 'dart:convert';
+import 'package:uji_level_app/homess.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:uji_level_app/layanan/index.dart';
+import '../../methods/api.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -8,9 +15,37 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+ TextEditingController email = TextEditingController(); 
+  TextEditingController password = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   String _email = '';
   String _password = '';
   bool _isPasswordVisible = false;
+
+    void loginUser() async {
+      final data = {
+        'email': email.text.toString(),
+        'password': password.text.toString(),
+      };
+      final result = await http.post(
+        Uri.parse('http://metal-knife.gl.at.ply.gg:7437/api/login'),
+        body: {'email': _email, 'password': _password}
+      );
+      final response = jsonDecode(result.body);
+      if (response['status'] == 200) {
+        SharedPreferences preferences = await SharedPreferences.getInstance();
+        await preferences.setInt('user_id', response['user']['id']);
+        await preferences.setString('name', response['user']['name']);
+        await preferences.setString('email', response['user']['email']);
+        await preferences.setString('token', response['token']);
+        
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => IndexLayanan(),
+          ),
+        );
+      }
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +80,7 @@ class _LoginState extends State<Login> {
 
                 Container(
                   child: Form(
+                    key: _formKey,
                     child: Column(
                       children: <Widget>[
 
@@ -141,20 +177,16 @@ class _LoginState extends State<Login> {
                             ),
                           ),
                         ),
-
-                      ],
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: 15.0), // Jarak 
+                      SizedBox(height: 15.0), // Jarak 
 
                 Container(
                   width: 300,
                   height: 50,
                   // color: Colors.pink,
                   child: ElevatedButton(
-                    onPressed: null, 
+                    onPressed: () {
+                      loginUser();
+                    }, 
                     child: Text(
                       'Login',
                       style: TextStyle(
@@ -171,6 +203,12 @@ class _LoginState extends State<Login> {
                       ),
                     )
                   ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                
 
 
               ],

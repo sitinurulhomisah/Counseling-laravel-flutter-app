@@ -22,7 +22,7 @@
 
             <div class="mt-3">
                 <label for="siswa_id" class="form-label">Siswa</label>
-                <select class="tom-select mt-3" data-toggle="select2" name="siswa_id" id="siswa_id">
+                <select class="form-select mt-3" data-toggle="select2" name="siswa_id" id="siswa_id" readonly>
                     @foreach ($siswa as $item)
                     <option value="{{ $item->id }}" @if($item->id == $petaKerawanan->siswa_id) selected @endif>{{ $item->nama }}</option>
                     @endforeach
@@ -38,7 +38,7 @@
 
             <div class="form-group">
                 <label for="jenis_kerawanan">Jenis Kerawanan</label>
-                <select class="tom-select mt-3" name="jenis_kerawanan[]" {{ in_array($jenisKerawanan, explode(',', $petaKerawanan->jenis_kerawanan)) ? 'selected' : '' }} data-toggle="select2" multiple>
+                <select class="tom-select mt-3" name="jenis_kerawanan[]" {{ in_array($jenisKerawanan, explode(',', $petaKerawanan->jenis_kerawanan)) ? 'selected' : '' }} data-toggle="select2" multiple required>
                     @foreach ($jenisKerawanan as $jenis)
                         <option value="{{ $jenis }}" {{ in_array($jenis, explode(',', $petaKerawanan->jenis_kerawanan)) ? 'selected' : '' }}>
                             {{ $jenis }}

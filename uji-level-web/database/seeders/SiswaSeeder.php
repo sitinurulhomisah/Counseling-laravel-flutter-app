@@ -46,7 +46,7 @@ class SiswaSeeder extends Seeder
         Siswa::create([
             'user_id' => $user->id, 
             'nisn' => '600', 
-            'nama' => 'Siswa', 
+            'nama' => 'Yanto', 
             'kelas_id' => '2', 
             'ttl' => Carbon::now(),  
             'jenis_kelamin' => 'pria',  
@@ -66,6 +66,46 @@ class SiswaSeeder extends Seeder
             'nisn' => '10000', 
             'nama' => 'Udin', 
             'kelas_id' => '1', 
+            'ttl' => Carbon::now(),  
+            'jenis_kelamin' => 'pria',  
+            'created_at' => Carbon::now(), 
+            'updated_at' => Carbon::now(), 
+        ]);
+
+
+        $user = User::create([
+            'name' => 'Aryo',
+            'email' => 'aryo@gmail.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        $user->assignRole('siswa');
+
+        Siswa::create([
+            'user_id' => $user->id, 
+            'nisn' => '23213', 
+            'nama' => 'Aryo', 
+            'kelas_id' => '2', 
+            'ttl' => Carbon::now(),  
+            'jenis_kelamin' => 'pria',  
+            'created_at' => Carbon::now(), 
+            'updated_at' => Carbon::now(), 
+        ]);
+
+
+        $user = User::create([
+            'name' => 'Kidit',
+            'email' => 'kidit@gmail.com',
+            'password' => Hash::make('password'),
+        ]);
+ 
+        $user->assignRole('siswa');
+
+        Siswa::create([
+            'user_id' => $user->id, 
+            'nisn' => '23213232132', 
+            'nama' => 'Kidit', 
+            'kelas_id' => '2', 
             'ttl' => Carbon::now(),  
             'jenis_kelamin' => 'pria',  
             'created_at' => Carbon::now(), 

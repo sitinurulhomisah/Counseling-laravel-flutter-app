@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Guru;
 use App\Models\Kelas;
 use App\Models\Walas;
+use App\Models\LogActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -33,12 +34,15 @@ public function storeKelas(Request $request)
         'walas_id' => 'required',
     ]);
 
-    Kelas::create([
+   $kelas = Kelas::create([
         'nama' => $request->nama,
         'guru_id' => $request->guru_id,
         'walas_id' => $request->walas_id,
     ]);
-   
+
+    LogActivity::create([
+        'activity' => auth()->user()->name. ' telah menambahkan kelas baru dengan nama kelas '.$kelas->nama
+    ]);
     return redirect('index-kelas')->with('success', 'Kelas berhasil ditambahkan.');
 }
 
@@ -56,7 +60,9 @@ public function update(Request $request, $id)
     $kelas->guru_id = $request->guru_id;
     $kelas->walas_id = $request->walas_id;
     $kelas->save();
-
+    LogActivity::create([
+        'activity' => auth()->user()->name. ' telah mengupdate data kelas dengan nama kelas '.$kelas->nama
+    ]);
     return redirect()->route('kelas.index')->with('success', 'Kelas berhasil diperbarui.');
 }
 
@@ -64,7 +70,7 @@ public function edit($id)
 {
     $kelas = Kelas::findOrFail($id);
     $gurus = Guru::all();
-    $walas = Walas::all();
+    $walas = Walas::whereDoesntHave('kelas')->get();
 
     return view('layouts.kelas.update', compact('kelas', 'gurus', 'walas'));
 }
@@ -77,6 +83,9 @@ public function destroy($id)
     Schema::disableForeignKeyConstraints();
     $kelas->delete();
     Schema::enableForeignKeyConstraints();
+    LogActivity::create([
+        'activity' => auth()->user()->name. ' telah menghapus kelas dengan nama kelas '.$kelas->nama
+    ]);
     return redirect()->route('kelas.index')->with('success', 'Kelas berhasil dihapus.');
 }
 

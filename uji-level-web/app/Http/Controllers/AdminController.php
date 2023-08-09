@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Guru;
 use Exception;
+use App\Models\Guru;
 use App\Models\User;
 use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\Walas;
+use App\Exports\GuruExport;
+use App\Exports\KelasExport;
+use App\Exports\SiswaExport;
+use App\Exports\WalasExport;
+use App\Models\LogActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\SiswaExport;
-use App\Exports\GuruExport;
-use App\Exports\WalasExport;
-use App\Exports\KelasExport;
+use Illuminate\Support\Facades\Schema;
 
 
 
@@ -37,6 +39,21 @@ class AdminController extends Controller
     }
 
 
+
+        public function indexActivity()
+        {
+            $jumlahkelas = Kelas::count();
+            $result = DB::select('CALL GetTotalSiswa()');
+            $jumlahsiswa = $result[0]->total_siswa;
+            $jumlahguru = Guru::count();
+            $jumlahwalas = Walas::count();
+            $activity = LogActivity::latest()->take(10)->get();
+            // dd($jumlahsiswa);
+            return view('pages.dashboard', compact(['activity', 'jumlahkelas', 'jumlahsiswa', 'jumlahguru', 'jumlahwalas']));
+        }
+
+
+        
     public function indexWalas()
     {
         $walas = Walas::with('kelas')->paginate(10);
@@ -99,8 +116,12 @@ class AdminController extends Controller
             'jenis_kelamin' => $request->input('jenis_kelamin'),
         ]);
 
+        LogActivity::create([
+            'activity' => auth()->user()->name . ' telah menambahkan guru baru dengan nama ' . $walas->nama
+        ]);
 
-        return redirect('index-walas')->with('success', 'Siswa berhasil Ditambahkan ');
+
+        return redirect('index-walas')->with('success', 'Data berhasil Ditambahkan ');
     }
 
     public function storeSiswa(Request $request)
@@ -120,9 +141,10 @@ class AdminController extends Controller
             'email' => $request->input('email'),
             'password' => bcrypt($request->input('password')),
         ]);
-        $user->assignRole('siswa');
 
         $userId = $user->id;
+
+        $user->assignRole('siswa');
 
         $siswa = Siswa::create([
             'user_id' => $userId,
@@ -133,10 +155,13 @@ class AdminController extends Controller
             'kelas_id' => $request->input('kelas_id'),
         ]);
 
+        LogActivity::create([
+            'activity' => auth()->user()->name . ' telah menambahkan siswa baru dengan nama ' . $siswa->nama
+        ]);
 
-        return redirect('index-siswa')->with('success', 'Siswa berhasil Ditambahkan ');
+
+        return redirect('index-siswa')->with('success', 'Data berhasil Ditambahkan ');
     }
-
 
     public function storeGuru(Request $request)
     {
@@ -158,7 +183,7 @@ class AdminController extends Controller
 
         $userId = $user->id;
 
-        $siswa = Guru::create([
+        $guru = Guru::create([
             'user_id' => $userId,
             'nipd' => $request->input('nipd'),
             'nama' => $request->input('nama'),
@@ -166,8 +191,25 @@ class AdminController extends Controller
             'jenis_kelamin' => $request->input('jenis_kelamin'),
         ]);
 
+        LogActivity::create([
+            'activity' => auth()->user()->name . ' telah menambahkan guru baru dengan nama ' . $guru->nama
+        ]);
 
         return redirect('index-guru')->with('success', 'Guru berhasil Ditambahkan ');
+    }
+
+
+    public function exportSiswa(){
+        return Excel::download(new SiswaExport(), 'data.xlsx');
+    }
+    public function exportGuru(){
+        return Excel::download(new GuruExport(), 'data.xlsx');
+    }
+    public function exportWalas(){
+        return Excel::download(new WalasExport(), 'data.xlsx');
+    }
+    public function exportKelas(){
+        return Excel::download(new KelasExport(), 'data.xlsx');
     }
 
 
@@ -224,8 +266,13 @@ class AdminController extends Controller
             'password' => $request->password,
         ]);
 
+        LogActivity::create([
+            'activity' => auth()->user()->name . ' telah merubah data siswa ' . $datasiswa->nama
+        ]);
+
+
         $datasiswa->update();
-        return redirect('index-siswa');
+        return redirect('index-siswa')->with('success', 'Update Siswa Berhasil ');
     }
 
     public function updateGuru(Request $request, string $id)
@@ -244,7 +291,11 @@ class AdminController extends Controller
         $user->password = $request->input('password');
         $user->save();
 
-        return redirect('index-guru');
+        LogActivity::create([
+            'activity' => auth()->user()->name . ' telah merubah data guru' . $guru->nama
+        ]);
+
+        return redirect('index-guru')->with('success', 'Data berhasil diubah');
     }
 
     public function updateWalas(Request $request, string $id)
@@ -264,7 +315,12 @@ class AdminController extends Controller
             'password' => $request->password,
         ]);
 
-        return redirect('index-walas');
+        LogActivity::create([
+            'activity' => auth()->user()->name . ' telah merubah data walas' . $datawalas->nama
+        ]);
+
+
+        return redirect('index-walas')->with('sucess', 'Data berhasil diubah');
     }
 
 
@@ -277,20 +333,33 @@ class AdminController extends Controller
     {
         $siswa = Siswa::findOrFail($id);
         $user = User::Where('id', $siswa->user_id);
+        Schema::disableForeignKeyConstraints();
         $siswa->delete();
         $user->delete();
+        Schema::enableForeignKeyConstraints();
 
-        return redirect('index-siswa')->with('success', 'Seller Data Deleted Successfully');
+        LogActivity::create([
+            'activity' => auth()->user()->name . ' telah mengapus data siswa' . $siswa->nama
+        ]);
+
+
+        return redirect('index-siswa')->with('success', 'Data berhasil dihapus');
     }
 
     public function destroyWalas($id)
     {
         $walas = Walas::findOrFail($id);
         $user = User::Where('id', $walas->user_id);
+        Schema::disableForeignKeyConstraints();
         $walas->delete();
         $user->delete();
 
-        return redirect('index-walas')->with('success', 'Seller Data Deleted Successfully');
+        LogActivity::create([
+            'activity' => auth()->user()->name . ' telah merubah data walas' . $walas->nama
+        ]);
+
+
+        return redirect('index-walas')->with('success', 'Data berhasil dihapus');
     }
 
     public function destroyGuru($id)
@@ -299,12 +368,18 @@ class AdminController extends Controller
         $user = $guru->user; // Mengambil data profile yang terkait dengan user
 
         // Hapus data profile terlebih dahulu
+        Schema::disableForeignKeyConstraints();
         $guru->delete();
 
         // Hapus data user
         $user->delete();
 
-        return redirect('index-guru')->with('success', 'Seller Data Deleted Successfully');
+        LogActivity::create([
+            'activity' => auth()->user()->name . ' telah menghapus data guru' . $guru->nama
+        ]);
+
+
+        return redirect('index-guru')->with('success', 'Data berhasil dihapus');
     }
 
     //SEARCH
@@ -374,25 +449,5 @@ class AdminController extends Controller
         return view('layouts.kelas.index', compact('kelas'));
     }
 
-    //Export Excel
-
-    public function exportSiswa()
-    {
-        return Excel::download(new SiswaExport, 'siswa.xlsx');
-    }
-
-    public function exportGuru()
-    {
-        return Excel::download(new GuruExport, 'guru.xlsx');
-    }
-
-    public function exportWalas()
-    {
-        return Excel::download(new WalasExport, 'walas.xlsx');
-    }
-
-    public function exportKelas()
-    {
-        return Excel::download(new KelasExport, 'kelas.xlsx');
-    }
+    
 }
